@@ -15,16 +15,41 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
-        // Override point for customization after application launch.
+
         Parse.setApplicationId(
             "XDMubuINfHgvtjNo28RaBsDRY8Aq42BUfplUJgKQ",
             clientKey: "YnSCVMyOxcsQw7dY4IbnfXnuy1BGZiKLWBM6r8NS"
         )
-        var object = PFObject(className: "TestClass")
-        object.addObject("Banana", forKey: "favoriteFood")
-        object.addObject("Chocolate", forKey: "favoriteIceCream")
-        object.saveInBackground()
+        PFFacebookUtils.initializeFacebook()
+        
+        var permissions = ["public_profile", "email"]
+        
+        PFFacebookUtils.logInWithPermissions(permissions, {
+            (user: PFUser!, error: NSError!) -> Void in
+            if !(user != nil) {
+                NSLog("Uh oh. The user cancelled the Facebook login.")
+            } else if user.isNew {
+                NSLog("User signed up and logged in through Facebook!")
+            } else {
+                NSLog("User logged in through Facebook!")
+            }
+        })
+        
+        FBLoginView.self
+        FBProfilePictureView.self
+        
+//        var object = PFObject(className: "TestClass")
+//        object.addObject("Banana", forKey: "favoriteFood")
+//        object.addObject("Chocolate", forKey: "favoriteIceCream")
+//        object.saveInBackground()
+
         return true
+    }
+    
+    func application(application: UIApplication, openURL url: NSURL,
+        sourceApplication: NSString, annotation: AnyObject) -> Bool {
+            return FBAppCall.handleOpenURL(url, sourceApplication:sourceApplication,
+                withSession:PFFacebookUtils.session())
     }
 
     func applicationWillResignActive(application: UIApplication) {
@@ -43,6 +68,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationDidBecomeActive(application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+        FBAppCall.handleDidBecomeActiveWithSession(PFFacebookUtils.session())
     }
 
     func applicationWillTerminate(application: UIApplication) {
